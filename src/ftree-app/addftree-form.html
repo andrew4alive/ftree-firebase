@@ -1,0 +1,148 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="addftree-form">
+  <template strip-whitespace>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-button{
+        float:right;
+      }
+    </style>
+    <h2>Add Member</h2>
+    <paper-input type="text" name="name" label="Name"  always-float-label value="">
+    </paper-input>
+
+
+    <paper-toggle-button   checked="{{spouse}}" >
+      Marry
+    </paper-toggle-button>
+
+    <template is="dom-if" if="[[spouse]]">
+      <paper-input  type="text" name="spousename" always-float-label value=""
+      label="Spouse name"  >
+    </paper-input>
+  </template>
+
+
+
+    <paper-button  on-click="addchild" style="color:black;clear:right;">Add Child</paper-button>
+    <paper-button  on-click="addparent" style="color:black;">Add Parent</paper-button>
+    <paper-button  on-click="closeformaction" style="color:black;clear:right;">Cancel</paper-button>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class addftreeForm extends Polymer.Element {
+      static get is() { return 'addftree-form'; }
+      static get properties() {
+        return {
+          closeform:{
+            type:Object
+          },
+          formdata:{
+            type:Object,
+            value:null
+          },
+          own:{
+            type:String,
+            value:null
+          },
+          meid:{
+            type:String,
+            value:null
+          },
+          action:{
+            type:String,
+            value:null
+          },
+          spouse:{
+            type:Boolean,
+
+          }
+        };
+      }
+      ready(){
+        super.ready();
+
+      }
+      addchild(e){
+        var self = this;
+        var dom = self.shadowRoot.childNodes;
+        var fd = self.getformjson(dom);
+        var data = fd;
+        if(Object.keys(data).indexOf("spousename")>=0){
+          data["spouse"]={};
+          data.spouse.name=data.spousename;
+        }
+        delete data.spousename;
+        if(fd.name == "") return false;
+      //  if(self.action=="child"){
+      var ce = new CustomEvent('addchild',{detail:{
+        data:data,
+        parent:self.meid
+      }});
+      window.dispatchEvent(ce);
+        //}
+        self.clearinput();
+        this.closeform();
+
+      }
+
+      addparent(e){
+        var self = this;
+        var dom = self.shadowRoot.childNodes;
+        var fd = self.getformjson(dom);
+        var data = fd;
+        if(Object.keys(data).indexOf("spousename")>=0){
+          data["spouse"]={};
+          data.spouse.name=data.spousename;
+        }
+        delete data.spousename;
+        if(fd.name == "") return false;
+        var ce = new CustomEvent('addparent',{detail:{
+          data:data,
+          parent:self.meid
+        }});
+        window.dispatchEvent(ce);
+        self.clearinput();
+        this.closeform();
+      }
+
+      getformjson(child){
+        var self = this;
+        var re = {};
+        for(var i = 0; i <child.length; i++ ){
+
+          if(child[i].tagName == "PAPER-INPUT"){
+            re[child[i].name] = child[i]["value"];
+          }
+        }
+
+        return re;
+      }
+
+      clearinput(){
+        var self = this;
+        var child = self.shadowRoot.childNodes;
+        for(var i = 0; i <child.length; i++ ){
+          if(child[i].tagName == "PAPER-INPUT"){
+          child[i]["value"]="";
+          }
+        }
+      }
+
+      closeformaction(e){
+        this.clearinput();
+        this.closeform();
+
+      }
+    }
+
+    window.customElements.define(addftreeForm.is, addftreeForm);
+  </script>
+</dom-module>

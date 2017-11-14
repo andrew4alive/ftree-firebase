@@ -1,0 +1,7 @@
+{
+  "name": "ftree",
+  "short_name": "ftree",
+  "description": "family tree with firebase",
+  "start_url": "/",
+  "display": "standalone"
+}

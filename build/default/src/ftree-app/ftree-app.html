@@ -1,0 +1,59 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<!--my app import-->
+<link rel="import" href="./welcome-page.html">
+
+<dom-module id="ftree-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+
+        height: 100%;
+        width: 100%;
+
+      }
+    </style>
+    <!--
+    <h2>Hello [[prop1]][[login.text]]!</h2>
+  -->
+    <template is="dom-if" if="{{users}}">
+     <h1>login</h1>
+     </template>
+     <template is="dom-if" if="{{!users}}">
+      <welcome-page></welcome-page>
+      </template>
+
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class FtreeApp extends Polymer.Element {
+      static get is() { return 'ftree-app'; }
+      static get properties() {
+        return {
+
+          users:{
+            type:Object,
+            value:function(){
+              return null;
+            }
+          },
+
+
+          }
+
+
+      }
+
+
+
+    }
+
+    window.customElements.define(FtreeApp.is, FtreeApp);
+  </script>
+</dom-module>

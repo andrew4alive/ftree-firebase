@@ -1,0 +1,318 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+
+
+<link rel="import" href="./ftree-member.html">
+<link rel="import" href="./addftree-member.html">
+<link rel="import" href="./ftree-form.html">
+<dom-module id="ftree-manage">
+  <template>
+    <style>
+      :host {
+        display:block;
+
+        position: absolute;
+        top:0px;
+        left:0px;
+        height: 100%;
+        width: 100%;
+      }
+      paper-button{
+       border-color: #FDF3E7;
+       border-style: solid;
+       color: white;
+
+      }
+
+
+      addftree-member{
+          height:0px;
+          overflow: hidden;
+      }
+    </style>
+    <h2 style="margin:2%;">Hello, [[users.displayName]]!</h2>
+  <!--  <addftree-member id="addftreemember"></addftree-member>
+    <paper-button on-click="showaddftree"><b>show data</b></paper-button>
+  -->
+
+
+      <ftree-form id="ftreeform" users="[[users]]"></ftree-form>
+
+
+<!--    <paper-button on-click="showaddftree"><b>show data</b></paper-button>-->
+<!-- dialog form end-->
+
+    <template is="dom-if" if="[[!showfamily(ftree,me)]]">
+      <paper-button style="margin:2%" on-click="createfamilyftree">
+        <b>create New Family Tree</b>
+      </paper-button>
+    </template>
+    <div id="ftreeholder">
+
+    </div>
+      <!--
+      <ftree-member member="[[ftree]]"  users="[[users]]" id="ftm"
+      me="[[me]]" ></ftree-member>
+      -->
+  </template>
+
+  <script>
+
+    /**
+     * @customElement
+     * @polymer
+     */
+    class FtreeManage extends Polymer.Element {
+      static get is() { return 'ftree-manage'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'ftree-app'
+          },
+          nav:{
+            type:Object,
+            value:function(){ return {}; }
+          },
+          users:Object,
+
+          ftree:{
+            type:Object,
+            value:function(){return {};}
+          },
+          ftreep:String,
+          database:{
+            type:Object,
+            readonly:true,
+            value:function(){return firebase.database();  }
+          },
+          me:{
+            type:String,
+          //  readonly:true,
+          //  value:null
+
+        }
+
+        };
+      }
+  ///life cysle
+      ready(){
+        super.ready();
+
+        var  self =  this;
+
+
+        //self.database.ref('nav/users/'+this.users.uid).on('value',function(snap){
+          //    console.log(snap.val());
+
+      //  });
+
+        self.ftreep = 'ftree/users/'+self.users.uid+'/ftree';
+        self.database.ref(self.ftreep).on('value',function(snap){
+
+          if(snap.val() == null) {
+            self.ftree=null;
+            return false;
+          }
+          self.me = snap.val().root.rootid.toString();
+          var v =snap.val();
+          self.ftree =v;
+          delete v.root ;
+          //re-render ftree-member element
+          var ftreeholder = self.$.ftreeholder;
+          ftreeholder.innerHTML="";
+          var cele = document.createElement('ftree-member');
+          cele.member = self.ftree;
+          cele.me = self.me;
+          cele.users=self.users;
+          ftreeholder.appendChild(cele);
+        });
+
+      }
+      connectedCallback(){//event from ftree member
+          super.connectedCallback();
+          // child event
+          var self =this;
+          var ftreeform = self.$.ftreeform;
+          if(ftreeform==null) return false;
+          window.addEventListener('updateself',function(e){
+            console.log(e.detail);
+            var d = e.detail;
+            var data ={};
+            var dkeys = Object.keys(d);
+            if(dkeys.length>0){
+              var path = self.ftreep+'/'+dkeys[0];
+              data[path] = d[dkeys[0]];
+              //console.log(data);
+
+              firebase.database().ref().update(data).then(function(){
+                ftreeform.appear =false;
+
+              });
+            }
+
+          });
+
+
+          ///new add child from addftree-member
+           window.addEventListener('addchild', function(e){
+             var d = e.detail.data;
+             var p = e.detail.parent;
+             var dkeys = Object.keys(d);
+             var nk =   firebase.database().ref(self.ftreep).push().key;
+             var data = {};
+             d['p'] = p;
+             d['c']= null;
+             d['date'] = firebase.database.ServerValue.TIMESTAMP;
+             data[self.ftreep+'/'+nk] = d ;
+             data[self.ftreep+'/'+p+'/c/'+nk] = nk;
+          //  console.log(data);
+             firebase.database().ref().update(data).then(function(){
+               ftreeform.appear =false;
+
+             });
+           });
+           ///new add child from addftree-member
+            window.addEventListener('addparent', function(e){
+              //console.log('add parent',e.detail); return false;
+              var d = e.detail.data;
+              var p = e.detail.parent;
+              var dkeys = Object.keys(d);
+              var parentkey = self.ftree[p]['p'];
+            //  console.log(parentkey,p);
+              var nk =   firebase.database().ref(self.ftreep).push().key;
+              var data = {};
+              d['p'] = parentkey;
+              d['c'] = {};
+              d.c[p] = p;
+              d['date'] = firebase.database.ServerValue.TIMESTAMP;
+              if(p != self.me){
+              data[self.ftreep+'/'+parentkey+'/c/'+nk] = nk ;
+              data[self.ftreep+'/'+parentkey+'/c/'+p] = null ;
+              }
+              else{
+                data['ftree/users/'+self.users.uid+'/ftree/root'] = {
+                  rootid:nk,
+                };
+                d['p'] = "--";
+              }
+              data[self.ftreep+'/'+nk] = d ;
+              data[self.ftreep+'/'+p+'/p'] = nk;
+            //  console.log(data); console.log(p,self.me); return false; to be continues
+              firebase.database().ref().update(data).then(function(){
+                ftreeform.appear =false;
+
+              });
+            });
+          //delete child event
+          window.addEventListener('deletefire', function(e){
+            var p = e.detail;
+            var d ={};
+          //  console.log(self.me,p);
+          //  console.log(self.me == p); return false;
+            if(self.me !=  p){
+            d[self.ftreep+'/'+p] = null;
+            d = _corsivechild(self.ftree,self.ftree[p],d,[]);
+            }
+            else{ d[self.ftreep] = null; }
+            if(d == {}) return false;
+            firebase.database().ref().update(d).then(function(){
+               ftreeform.appear =false;
+
+            });
+
+            function  _corsivechild(member,child,re,pend){
+              var member = member;
+              var child = child;
+              var re = re;
+              var pend = pend;
+              if(typeof child != "undefined") {
+                if( child.hasOwnProperty('c')){
+                  for(var ky in child['c']){
+                    re[self.ftreep+'/'+ky] = null;
+                    pend.push(ky);
+
+                  }
+                }
+              }
+              if(pend.length>0){
+                var pendpop =pend.pop();
+                _corsivechild(member,member[pendpop],re,pend);
+              }
+              return re;
+
+            }
+
+          });
+
+          window.addEventListener('showmember',function(e){
+
+            var ftreeform = self.$.ftreeform;
+            if(ftreeform==null) return false;
+
+            ftreeform.formdata = self.ftree[e.detail];
+
+            ftreeform.meid = e.detail;
+            ftreeform.appear=true;
+
+          });
+          self.addEventListener('dom-change',function(e){
+            //console.log('dom change');
+            //console.log(e);
+          });
+
+      }
+
+      //event
+      createfamilyftree(e){
+       self = this;
+       var key =  self.database.ref('ftree/users/'+this.users.uid).push().key;
+       var data = {};
+       data['ftree/users/'+this.users.uid+'/ftree/'+key] = {
+         name:self.users.displayName,
+      //   photo:self.users.photoURL,
+         p:'--',
+         c:null,
+         date:firebase.database.ServerValue.TIMESTAMP
+       };
+       data['ftree/users/'+this.users.uid+'/ftree/root'] = {
+         rootid:key,
+       };
+
+       self.database.ref().update(data);
+     }
+
+     showaddftree(e){
+      /* console.log(e.currentTarget);
+       var self =this;
+       var addftreemember = self.$.addftreemember;
+        console.log(addftreemember.style.height);
+       addftreemember.style.height="100%";
+       */
+       var addftreemember = this.$.addftreemember;
+       addftreemember.open();
+       console.log(this.users);
+     }
+
+     //helper
+    showfamily(member,me){
+
+      if(typeof member != "object"||member == null) return false;
+      var keys = Object.keys(member);
+    //  console.log(keys,typeof member);
+      if(keys.indexOf(me)>=0) return true;
+      return false;
+
+    }
+
+
+    }
+
+    window.customElements.define(FtreeManage.is, FtreeManage);
+  </script>
+</dom-module>

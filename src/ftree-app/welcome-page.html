@@ -1,0 +1,115 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+
+
+<dom-module id="welcome-page">
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        background-color: #C63D0F;
+        height: 100%;
+        width: 100%;
+        margin: 0px;
+        color: #3B3738;
+
+      }
+      .c{
+        margin-top: 5%;
+        background: #FDF3E7;
+        height: 40%;
+
+      }
+      .c2{
+        text-align: center;
+      }
+      .col-2{
+        display: inline;
+        float: left;
+        width: 15%;
+        height: 100%;
+        background-color: #7E8F7C;
+
+      }
+      .col-8{
+        display: inline;
+        float: left;
+        width: 70%;
+
+      }
+      .row{height: 100%;}
+      .title{
+         font-size: 300%;
+         margin:  auto;
+         padding: 0px;
+         margin-top:5%;
+         text-align: center;
+
+      }
+      .login{
+        display: block;
+        margin: 0 auto;
+        width: 25%;
+        font-size: 80%;
+        text-align: center;
+        background-color: #C63D0F;
+        color: #FDF3E7;
+        border: medium solid grey;
+        border-width: medium;
+      }
+    </style>
+
+    <h1 class="title">FTREE</h1>
+    <div class="container-fluid c">
+      <div class="row">
+           <div class="col-2"></div>
+           <div class="col-8">
+           </br>
+              <h2 class="c2">Create Family Tree!</h2>
+              <paper-button class="login" on-click="loginAction"><h3><b>Login Here</b></h3></paper-button>
+          </div>
+          <div class="col-2"></div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class welcomePage extends Polymer.Element {
+      static get is() { return 'welcome-page'; }
+      static get properties() {
+        return {
+          msg: {
+            type: String,
+            value: 'welcome'
+          },
+          users:{
+            type:Object,
+            notify:true,
+
+          }
+
+        };
+      }
+
+      ready(){
+        super.ready();
+        this.users = null;
+      }
+      loginAction(e){
+        // console.log('login action trigger');
+         this.dispatchEvent(new CustomEvent('loginaction'));
+      }
+    }
+
+    window.customElements.define(welcomePage.is, welcomePage);
+  </script>
+</dom-module>

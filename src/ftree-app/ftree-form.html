@@ -1,0 +1,283 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="./addftree-form.html">
+<dom-module id="ftree-form">
+  <template strip-whitespace>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-button{
+        float: right;
+        /*margin:10px;*/
+      }
+      paper-dialog{
+      /*  overflow: scroll;*/
+      }
+
+      .hide{
+        height: 0px;
+      }
+      .show{
+        height: 100%;
+
+      }
+
+      div{
+        overflow: hidden;
+      /*  -webkit-transition: height 1s;
+        transition: height 1s;
+      */}
+    </style>
+    <paper-dialog id="addftreemember" modal="true" on-opened-changed="dialogchange">
+      <div id="main" class="show">
+        <paper-toggle-button active="{{edit}}" id="edit">
+          Edit
+        </paper-toggle-button>
+        <paper-input type="text" name="name" label="Name"  always-float-label disabled="{{!edit}}"
+        value="[[display.name]]" error-message="more than 1 char" minlength="1"></paper-input>
+
+
+        <paper-toggle-button   checked="{{spouse}}" disabled="{{!edit}}">
+          Marry
+        </paper-toggle-button>
+
+        <template is="dom-if" if="[[spouse]]">
+          <paper-input  type="text" name="spousename" always-float-label disabled="{{!edit}}"
+          label="Spouse name" value="[[display.spouse.name]]" >
+        </paper-input>
+      </template>
+      <template is="dom-if" if="[[edit]]">
+
+        <paper-button on-click="update" style="color:black;clear:right;" >Update</paper-button>
+        <paper-button on-click="delete" style="color:black;clear:left;" >Delete</paper-button>
+
+      </template>
+      <template is="dom-if" if="[[users]]">
+        <template is="dom-if" if="[[!edit]]">
+          <paper-button customtarget="child" on-click="addchild"
+          style="color:black;clear:right;">add member</paper-button>
+        </template>
+      </template>
+
+      <paper-button dialog-dismiss style="color:black;clear:right;">Cancel</paper-button>
+    </div>
+    <div id="add" class="hide">
+
+      <addftree-form closeform="[[closeformpass()]]" id="addform2"></addftree-form>
+
+    </div>
+
+
+
+    </paper-dialog>
+
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class ftreeForm extends Polymer.Element {
+      static get is() { return 'ftree-form'; }
+      static get properties() {
+        return {
+          meid:{
+            type:String,
+            value:null
+          },
+          users:{
+            type:Object,
+            value:null
+          },
+          formdata:{
+            type:Object,
+            observer:'formdataob'
+          },
+          appear:{
+            type:Boolean,
+            value:false,
+            observer:'appearob'
+          },
+          spouse:{
+            type:Boolean,
+            value:false,
+            observer:'spouseob'
+          },
+          edit:{
+            type:Boolean,
+            value:false,
+            observer:'editob'
+          },
+          editdata:{
+            type:Object,
+            value:null
+          },
+          display:{
+            type:Object
+          },
+          field:{
+            type:Object,
+            value:[]
+          }
+
+        };
+      }
+      formdataob(n,o){
+      //  console.log(n);
+        var self = this;
+        self.display = n;
+        self.spouse = self.havespouse(self.formdata);
+        if(typeof n == "object" && n != null){
+          self.editdata = JSON.parse(JSON.stringify(self.formdata));
+        }
+
+      }
+      appearob(n,o){
+        if(n&&this.$.addftreemember!=null)
+          this.$.addftreemember.open();
+        if(n==false&&this.$.addftreemember!=null)
+            this.$.addftreemember.close();
+
+      }
+      editob(n,o){
+        var self = this;
+        if(self.edit == true ){
+          self.display = self.editdata ;
+          self.spouse = self.havespouse(self.editdata);
+        }
+        else{
+          self.display = self.formdata;
+          self.spouse = self.havespouse(self.formdata);
+        }
+      }
+      spouseob(n,o){
+        var self = this;
+        var ele ;
+        var edit = self.edit;
+        var formkeys = Object.keys(self.formdata);
+        if(edit){
+          if(n){
+            if(formkeys.indexOf("spouse">=0))
+            self.editdata['spouse'] = self.formdata.spouse ;
+          }
+          else {
+            delete self.editdata['spouse'];
+          }
+        }
+
+      }
+
+      ready(){
+        super.ready();
+        //var dialog  = this.shadowRoot.childNodes[1];
+         //console.log(dialog);
+      //   this.me= "it me";
+
+      }
+
+      dialogchange(e){
+        //console.log(e);
+        this.appear = e.detail.value;
+        if(e.detail.value==false)
+          this.formdata = {};
+          this.edit=false;
+      }
+      havespouse(ftree){
+      //  console.log(typeof ftree);
+        if(typeof ftree!="object") return false;
+      //  console.log(typeof ftree,ftree);
+        var mainkeys = Object.keys(ftree);
+
+        if(mainkeys.length>0){
+          //var ftreekeys = Object.keys(mainkeys[0]);
+          if(mainkeys.indexOf("spouse")>=0) return true;
+        }
+        return false;
+      }
+      update(e){
+          var self = this;
+
+          var formd = self.getformjson(self.$.main.childNodes);
+          var d ={};
+          d[self.meid] = {};
+
+          d[self.meid] = self.editdata;
+          var formkey = Object.keys(formd);
+
+          if(formkey.length>0){
+
+            if(formkey.indexOf('name')>=0)
+              d[self.meid].name =formd['name'];
+            if(formkey.indexOf('spousename')>=0&&self.spouse){
+              d[self.meid].spouse = {} ;
+              d[self.meid].spouse.name = formd['spousename'];
+            }
+            else{
+              delete d[self.meid].spouse;
+            }
+            var ce = new CustomEvent('updateself',{detail:d});
+            window.dispatchEvent(ce);
+
+          }
+
+      }
+      delete(e){
+        var ce = new CustomEvent('deletefire',{detail:this.meid});
+        window.dispatchEvent(ce);
+
+      }
+
+      addchild(e){
+        var self = this;
+        var action = e.currentTarget.getAttribute('customtarget');
+        //console.log(self.$.main);
+        self.$.addform2.formdata = {};
+        self.$.addform2.meid =self.meid ;
+        //self.$.addform2.action="child";
+        self.$.main.className="hide";
+        self.$.add.className="show";
+      }
+
+
+      getformjson(child){
+        var self = this;
+        var re = {};
+      //  var child = self.$.main.childNodes;
+      //  console.log(child);
+        for(var i = 0; i <child.length; i++ ){
+          //console.log(child[i].tagName,i);
+          if(child[i].tagName == "PAPER-INPUT"){
+            re[child[i].name] = child[i]["value"];
+          }
+        }
+
+        return re;
+      }
+
+      closeformpass(){
+        var self = this;
+        var c= function(){
+        self.$.main.className="show";
+        self.$.add.className="hide";
+      };
+
+      return c;
+      }
+
+
+    }
+
+    window.customElements.define(ftreeForm.is, ftreeForm);
+  </script>
+</dom-module>

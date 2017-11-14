@@ -1,0 +1,333 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+
+<link rel="import" href="./ftree-member-child.html">
+
+<dom-module id="ftree-member">
+  <template>
+    <style>
+      :host {
+        display: inline;
+        width: 100%;
+       background-color: #C63D0F;
+       margin:0px;
+       padding: 0px;
+
+      }
+      paper-button{
+        border: medium solid #FDF3E7;
+        font-size: 100%;
+        margin: 1%;
+        font-style: normal;
+      }
+
+      img{
+        height: 25px;
+        width: 25px;
+      }
+
+
+     /*css for tree
+
+*/
+
+      ul,li {
+        float: left;
+        margin:0px;
+        padding: 0px;
+
+      }
+      ul{
+        padding-top: 20px;
+        position: relative;
+      }
+      li{
+        margin:0px;
+        padding: 0px;
+        text-align: center;
+        list-style-type: none;
+        position: relative;
+        padding: 20px 5px 0px 5px;
+      }
+      li::before,li::after{
+        content:"";
+        position: absolute; top:0px;right: 50%;
+        border-top: 1px solid #ccc;
+        width: 50%;height: 20px;
+      }
+      li::after{
+        right: auto;left:50%;
+        border-left: 1px solid #ccc;
+      }
+
+      li a{
+        padding: 5px 10px;
+        display: block;
+
+        border-style: solid;
+        border-color: #ccc;
+        border-width: thin;
+        overflow-x: visible;
+        border-radius: 5px;
+      }
+
+      .onlychild{
+        padding-top: 0px;
+      }
+
+      .onlychild::before,.onlychild::after{
+        display: none;
+      }
+      .fc::before{  /*class fc = first child */
+        border-top:0 none;
+      }
+      .lc::after{  /*class lc =  last child */
+        border-top:0 none;
+      }
+      .childul::before{ /*ul that have child*/
+        content:"";
+        position: absolute;top:0px;right:50%;
+        border-left: 1px solid #ccc;
+        width: 0;height: 20px;
+      }
+
+
+    </style>
+
+
+    <template is="dom-if" if="[[!ulhaveparent()]]">
+      <ul>
+         <template id="member" is="dom-repeat" items="[[memberlist]]">
+              <li  class$="[[liclass()]]">
+                <a  parent$= "[[me]]" on-click="showmember">
+                [[item.name]]
+                [[item.spouse.name]]
+                <br/>
+                <template is="dom-if" if="[[item.photo]]">
+                  <img src="{{item.photo}}">
+                </template>
+              </a>
+              <template is="dom-if" if="[[havechild(item.c)]]">
+              <ul class="childul">
+               <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
+                  <ftree-member member="[[member]]" master="[[returnfalse()]]"
+                  childindex="[[index]]" childnum="[[getchildnum()]]"
+                   users="[[users]]" me="[[item]]"></ftree-member>
+                </template>
+              </ul>
+            </template>
+              </li>
+         </template>
+         </ul>
+    </template>
+
+    <template is="dom-if" if="[[ulhaveparent()]]">
+
+         <template id="member" is="dom-repeat" items="[[memberlist]]">
+              <li  class$="[[liclass()]]">
+                <a  parent$= "[[me]]" on-click="showmember">
+                [[item.name]]
+                [[item.spouse.name]]
+                <br/>
+                <template is="dom-if" if="[[item.photo]]">
+                  <img src="{{item.photo}}">
+                </template>
+              </a>
+              <template is="dom-if" if="[[havechild(item.c)]]">
+              <ul class="childul">
+               <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
+                  <ftree-member member="[[member]]" master="[[returnfalse()]]"
+                  childindex="[[index]]" childnum="[[getchildnum()]]"
+                   users="[[users]]" me="[[item]]"></ftree-member>
+                </template>
+                </ul>
+              </template>
+              </li>
+         </template>
+
+    </template>
+
+
+
+
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class ftreeMember extends Polymer.Element {
+      static get is() { return 'ftree-member'; }
+      static get properties() {
+        return {
+          users:{
+            type:Object
+          },
+         member:{
+           type:Object,
+
+           observer:'fob'
+         },
+         memberlist:{
+           type:Object,readonly:true
+           ,observer:'mlob'
+         },
+
+         me:{
+           type:String,
+           value:null
+         },
+         memberchildlist:{
+           type:Object,
+           observer:"mcob"
+         },
+         master:{
+           type: Boolean,
+           value:true
+         },
+         childnum:{
+           type:Number,
+           value:1
+         },
+         childindex:{
+           type:Number,
+           value:null
+         }
+
+
+
+        };
+      }
+       fob(n,o){
+        //  console.log(n,this.me);
+          var self= this;
+          if(n==null||typeof n[self.me] =='undefined'){
+            self.memberlist=[];
+            return false;
+          }
+
+          self.memberlist = [n[self.me]];
+        /*  self.memberchildlist = [];
+          var mckeys = Object.keys(n[self.me]);
+          if(mckeys.indexOf("c")>=0)
+            self.memberchildlist = Object.keys(n[self.me]['c']);
+        */
+       }
+       mlob(n,o){
+      //  console.log(n,this.shadowRoot.childNodes);
+       }
+       mcob(n,o){
+        // console.log(n);
+       }
+
+      ready(){
+        super.ready();
+
+      }
+
+
+      //event
+      addchild(e){
+         var p = e.currentTarget.getAttribute('parent');
+         var ce =  new CustomEvent('addfire',{detail:p});
+         window.dispatchEvent(ce);
+      }
+
+      addparent(e){
+        var p = e.currentTarget.getAttribute('parent');
+        var ce =  new CustomEvent('addfire-parent',{detail:p});
+        window.dispatchEvent(ce);
+
+      }
+
+      deletechild(e){
+
+
+        var p = e.currentTarget.getAttribute('parent');
+
+       var ce =  new CustomEvent('deletefire',{detail:p});
+       window.dispatchEvent(ce);
+
+
+      }
+
+      showmember(e){
+
+        var p = e.currentTarget.getAttribute('parent');
+
+       var ce =  new CustomEvent('showmember',{detail:p});
+       window.dispatchEvent(ce);
+
+      }
+
+
+
+
+///hlper function
+      objecttoarraychild(item){
+        if (item==null||typeof item == undefined ) return null;
+        var arr = [];
+        for(var i in item){
+          if(i in this.member)
+           arr.push(i.toString())
+
+        }
+        this.memberchildlist = arr;
+        return arr;
+      }
+
+
+
+      membername(ckey){
+        var self = this;
+        var keys = Object.keys(self.member);
+        if(keys.indexOf(ckey)>=0)
+       return   self.member[ckey]['name'];
+       return "no child";
+      }
+      returnfalse(){
+        return false;
+      }
+
+      liclass(){
+        if(this.childnum==1) return "onlychild";
+        if(this.childindex==0)
+          return "fc";
+          if(this.childindex == (this.childnum-1))
+            return "lc";
+        return "  ";
+      }
+
+      ulclass(){
+        if(this.childindex!=null) return "childul";
+        return "  ";
+      }
+
+      ulhaveparent(){
+        if(this.childindex!=null) return true;
+        return false;
+
+      }
+
+      getchildnum(){
+        return this.memberchildlist.length;
+      }
+
+      havechild(item){
+        var childarray = this.objecttoarraychild(item);
+        if(childarray == null) return false;
+        if(childarray.length>0) return true;
+        return false;
+      }
+
+
+    }
+
+    window.customElements.define(ftreeMember.is, ftreeMember);
+  </script>
+</dom-module>

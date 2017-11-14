@@ -1,0 +1,165 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<!--my app import-->
+<link rel="import" href="./welcome-page.html">
+<link rel="import" href="./ftree-manage.html">
+
+
+<dom-module id="ftree-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: absolute;
+        top:0px;
+        left:0px;
+        height: 100%;
+        width: 100%;
+        background-color: #C63D0F;
+      }
+      .logout{
+          background-color: #FDF3E7;
+          position: absolute;
+          top:1%;
+          right:1%;
+          z-index: 1;
+
+
+      }
+    </style>
+   <!--
+    <h2>Hello [[prop1]][[login.text]]!</h2>
+  -->
+    <template is="dom-if" if="{{users}}">
+      <paper-button raised="true" class="logout" on-click="logout">Logout</paper-button>
+      <ftree-manage users="{{users}}"></ftree-manage>
+     </template>
+     <template is="dom-if" if="{{!users}}">
+      <welcome-page users="{{users}}" on-loginaction="loginmethod" ></welcome-page>
+      </template>
+
+
+  </template>
+  <!-- firebase librrary-->
+ <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase-app.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase-auth.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase-database.js"></script>
+  <script>
+   //// firebase object
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyDJ-2tz0yCVRkJ84jRb3WR4JNLYiTT6F94",
+      authDomain: "ftree-b702e.firebaseapp.com",
+      databaseURL: "https://ftree-b702e.firebaseio.com",
+      projectId: "ftree-b702e",
+      storageBucket: "ftree-b702e.appspot.com",
+      messagingSenderId: "303794074572"
+    };
+    firebase.initializeApp(config);
+    
+    /**
+     * @customElement
+     * @polymer
+     */
+    class FtreeApp extends Polymer.Element {
+      static get is() { return 'ftree-app'; }
+      static get properties() {
+        return {
+
+          users:{
+            type:Object,
+          value:function(){
+              return null;
+            },
+            observer:'userschange'
+          },
+
+
+          }
+        }
+        userschange(n,o){
+        //  console.log(n);
+
+       }
+
+
+       ready(){
+         super.ready();
+         self = this;
+         firebase.auth().onAuthStateChanged(function(user) {
+           if (user) {
+             // User is signed in.
+             self.users = user;
+
+           } else {
+             // User is signed out.
+             // ...
+            self.users = null;
+            // console.log('user signout');
+
+           }
+             });
+
+         setTimeout(function () {
+
+         },0);
+
+       }
+
+      loginmethod(e){
+
+        console.log('login action from free-app');
+
+
+        self = this;
+        var provider = new firebase.auth.GoogleAuthProvider();
+
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+          // This gives you a Google Access Token. You can use it to access the Google API.
+        //  var token = result.credential.accessToken;
+          // The signed-in user info.
+          //var user = result.user;
+          // ...
+        }).catch(function(error) {
+
+          console.log('sign in error');
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          // The email of the user's account used.
+          var email = error.email;
+          // The firebase.auth.AuthCredential type that was used.
+          var credential = error.credential;
+          // ...
+        });
+
+
+
+      }
+
+
+      logout(e){
+
+        firebase.auth().signOut().then(function() {
+          // Sign-out successful.
+        }).catch(function(error) {
+          // An error happened.
+        });
+
+      }
+
+
+
+    }
+
+    window.customElements.define(FtreeApp.is, FtreeApp);
+
+
+
+
+
+
+  </script>
+</dom-module>
