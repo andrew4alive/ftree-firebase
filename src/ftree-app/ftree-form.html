@@ -13,14 +13,19 @@
   <template strip-whitespace>
     <style>
       :host {
-        display: block;
+        display: inline;
+
       }
       paper-button{
         float: right;
         /*margin:10px;*/
       }
       paper-dialog{
+
+
+
       /*  overflow: scroll;*/
+
       }
 
       .hide{
@@ -36,8 +41,14 @@
       /*  -webkit-transition: height 1s;
         transition: height 1s;
       */}
+
     </style>
-    <paper-dialog id="addftreemember" modal="true" on-opened-changed="dialogchange">
+
+
+
+    <paper-dialog id="addftreemember"
+      
+    on-opened-changed="dialogchange">
       <div id="main" class="show">
         <paper-toggle-button active="{{edit}}" id="edit">
           Edit
@@ -129,6 +140,10 @@
           field:{
             type:Object,
             value:[]
+          },
+          appearcb:{
+            type:Function,
+            value:null
           }
 
         };
@@ -144,8 +159,13 @@
 
       }
       appearob(n,o){
-        if(n&&this.$.addftreemember!=null)
+        //  this.$.addftreemember.positionTarget = this.parentele;
+        if(this.appearcb != null)
+          this.appearcb.action(n);
+        if(n&&this.$.addftreemember!=null){
+
           this.$.addftreemember.open();
+        }
         if(n==false&&this.$.addftreemember!=null)
             this.$.addftreemember.close();
 

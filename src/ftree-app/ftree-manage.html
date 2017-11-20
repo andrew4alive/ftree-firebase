@@ -5,7 +5,8 @@
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
-
+<link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 
 <link rel="import" href="./ftree-member.html">
 <link rel="import" href="./addftree-member.html">
@@ -16,11 +17,7 @@
       :host {
         display:block;
 
-        position: absolute;
-        top:0px;
-        left:0px;
-        height: 100%;
-        width: 100%;
+
       }
       paper-button{
        border-color: #FDF3E7;
@@ -28,24 +25,47 @@
        color: white;
 
       }
+      .header{
+        background-color: #339ACC;
+        border-radius: 5px;
+        display: inline-block;
+        padding: 10px;
+        padding-right: 75px;
+        position: relative;
 
+      }
+      .header>img{
+
+        position: absolute;
+        top: -3px;
+        right: 15px;
+        height: 50px;
+        width: auto;
+      }
 
       addftree-member{
           height:0px;
           overflow: hidden;
       }
+
+      #ftreeholder{
+        white-space: nowrap;
+        overflow: visible;
+        padding: 0 auto;
+      }
     </style>
-    <h2 style="margin:2%;">Hello, [[users.displayName]]!</h2>
-  <!--  <addftree-member id="addftreemember"></addftree-member>
-    <paper-button on-click="showaddftree"><b>show data</b></paper-button>
-  -->
+    <h2 class="header" style="margin:2%;">
+     Family Tree
+       <img src="/src/ftree-app/icon/tree.png">
+     </h2>
+    <br/>
 
 
-      <ftree-form id="ftreeform" users="[[users]]"></ftree-form>
 
 
-<!--    <paper-button on-click="showaddftree"><b>show data</b></paper-button>-->
-<!-- dialog form end-->
+
+
+
 
     <template is="dom-if" if="[[!showfamily(ftree,me)]]">
       <paper-button style="margin:2%" on-click="createfamilyftree">
@@ -55,10 +75,8 @@
     <div id="ftreeholder">
 
     </div>
-      <!--
-      <ftree-member member="[[ftree]]"  users="[[users]]" id="ftm"
-      me="[[me]]" ></ftree-member>
-      -->
+
+    <ftree-form id="ftreeform" users="[[users]]"></ftree-form>
   </template>
 
   <script>
@@ -106,12 +124,6 @@
 
         var  self =  this;
 
-
-        //self.database.ref('nav/users/'+this.users.uid).on('value',function(snap){
-          //    console.log(snap.val());
-
-      //  });
-
         self.ftreep = 'ftree/users/'+self.users.uid+'/ftree';
         self.database.ref(self.ftreep).on('value',function(snap){
 
@@ -127,6 +139,7 @@
           var ftreeholder = self.$.ftreeholder;
           ftreeholder.innerHTML="";
           var cele = document.createElement('ftree-member');
+          cele.id = "ctree";
           cele.member = self.ftree;
           cele.me = self.me;
           cele.users=self.users;
@@ -134,6 +147,11 @@
         });
 
       }
+
+      detached(){
+        self.database.ref(self.ftreep).off();
+      }
+
       connectedCallback(){//event from ftree member
           super.connectedCallback();
           // child event
@@ -141,7 +159,7 @@
           var ftreeform = self.$.ftreeform;
           if(ftreeform==null) return false;
           window.addEventListener('updateself',function(e){
-            console.log(e.detail);
+          //  console.log(e.detail);
             var d = e.detail;
             var data ={};
             var dkeys = Object.keys(d);
@@ -217,6 +235,8 @@
           //  console.log(self.me == p); return false;
             if(self.me !=  p){
             d[self.ftreep+'/'+p] = null;
+            var mepid = self.ftree[p].p;
+            d[self.ftreep+'/'+mepid+'/c/'+p] =null;
             d = _corsivechild(self.ftree,self.ftree[p],d,[]);
             }
             else{ d[self.ftreep] = null; }
@@ -254,12 +274,21 @@
 
             var ftreeform = self.$.ftreeform;
             if(ftreeform==null) return false;
+            ftreeform.parentele = e.detail;
+            ftreeform.formdata = self.ftree[e.detail.getAttribute('parent')];
 
-            ftreeform.formdata = self.ftree[e.detail];
-
-            ftreeform.meid = e.detail;
+            ftreeform.meid = e.detail.getAttribute('parent');
+            ftreeform.appearcb ={};
+            ftreeform.appearcb.action = function(ar){
+              if(ar) {
+              self.$.ftreeholder.style.display="none";
+              }
+            else{
+              self.$.ftreeholder.style.display="block";
+            //  e.detail.scrollIntoView();
+              }
+            };
             ftreeform.appear=true;
-
           });
           self.addEventListener('dom-change',function(e){
             //console.log('dom change');
@@ -309,6 +338,16 @@
       return false;
 
     }
+
+     ftreeinterface(){
+        return  {
+          name:'--',
+          p:"--",
+          c:"--",
+          date:firebase.database.ServerValue.TIMESTAMP
+        };
+
+     }
 
 
     }

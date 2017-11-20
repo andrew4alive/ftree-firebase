@@ -3,6 +3,8 @@
 <link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 
 <link rel="import" href="./ftree-member-child.html">
 
@@ -11,11 +13,9 @@
     <style>
       :host {
         display: inline;
-        width: 100%;
-       background-color: #C63D0F;
-       margin:0px;
-       padding: 0px;
-
+      /*  width: 100%;
+        margin: 0 auto;
+       padding: 0px;*/
       }
       paper-button{
         border: medium solid #FDF3E7;
@@ -29,50 +29,53 @@
         width: 25px;
       }
 
-
      /*css for tree
 
 */
 
-      ul,li {
-        float: left;
+      * {
+
         margin:0px;
         padding: 0px;
 
       }
+      .ulfirst{
+
+      }
       ul{
+        display: inline-block;  /* can work with block*/
         padding-top: 20px;
         position: relative;
+        white-space: nowrap;
       }
       li{
+      /*  float: left;*/
+        vertical-align: top;
+        display: inline-block;
         margin:0px;
-        padding: 0px;
         text-align: center;
         list-style-type: none;
         position: relative;
         padding: 20px 5px 0px 5px;
+
       }
       li::before,li::after{
         content:"";
         position: absolute; top:0px;right: 50%;
         border-top: 1px solid #ccc;
-        width: 50%;height: 20px;
+        width: 60%;height: 20px;
+        margin:0px;
+        padding: 0px;
       }
+
+
       li::after{
         right: auto;left:50%;
         border-left: 1px solid #ccc;
       }
 
-      li a{
-        padding: 5px 10px;
-        display: block;
 
-        border-style: solid;
-        border-color: #ccc;
-        border-width: thin;
-        overflow-x: visible;
-        border-radius: 5px;
-      }
+
 
       .onlychild{
         padding-top: 0px;
@@ -83,33 +86,70 @@
       }
       .fc::before{  /*class fc = first child */
         border-top:0 none;
+
       }
       .lc::after{  /*class lc =  last child */
         border-top:0 none;
+
       }
+
       .childul::before{ /*ul that have child*/
         content:"";
         position: absolute;top:0px;right:50%;
         border-left: 1px solid #ccc;
         width: 0;height: 20px;
+
       }
 
+
+      a{
+        text-align: center;
+        display: inline-block;
+        margin: 0px;
+        position: relative;
+        left:0px;
+        padding:10px 10px;
+
+        border-style: solid;
+        border-color: #ccc;
+        border-width: thin;
+        border-radius: 10px;
+
+      }
+
+    /*css for family box*/
+    a >span{
+      padding:1px 3px;
+
+      position: absolute;
+      top:-20px;
+    }
+
+    a> img{
+      position: relative;
+      top:5px;
+    }
 
     </style>
 
 
-    <template is="dom-if" if="[[!ulhaveparent()]]">
-      <ul>
+    <template is="dom-if" if="[[!ulhaveparent()]]" id="parent">
+      <ul class="ulfirst">
          <template id="member" is="dom-repeat" items="[[memberlist]]">
               <li  class$="[[liclass()]]">
-                <a  parent$= "[[me]]" on-click="showmember">
-                [[item.name]]
-                [[item.spouse.name]]
-                <br/>
-                <template is="dom-if" if="[[item.photo]]">
-                  <img src="{{item.photo}}">
+                <div><a parent$= "[[me]]" on-click="showmember">
+
+                  [[item.name]]
+                <template is="dom-if" if="[[item.spouse.name]]">
+                  <br/>
+                    <img src="/src/ftree-app/icon/marry.png">
+                    <br/>
+                    [[item.spouse.name]]
                 </template>
-              </a>
+
+
+
+              </a></div>
               <template is="dom-if" if="[[havechild(item.c)]]">
               <ul class="childul">
                <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
@@ -124,30 +164,34 @@
          </ul>
     </template>
 
-    <template is="dom-if" if="[[ulhaveparent()]]">
+    <template is="dom-if" if="[[ulhaveparent()]]" id="noparent">
+      <template id="member" is="dom-repeat" items="[[memberlist]]">
+           <li  class$="[[liclass()]]">
+             <div><a parent$= "[[me]]" on-click="showmember">
 
-         <template id="member" is="dom-repeat" items="[[memberlist]]">
-              <li  class$="[[liclass()]]">
-                <a  parent$= "[[me]]" on-click="showmember">
-                [[item.name]]
-                [[item.spouse.name]]
-                <br/>
-                <template is="dom-if" if="[[item.photo]]">
-                  <img src="{{item.photo}}">
-                </template>
-              </a>
-              <template is="dom-if" if="[[havechild(item.c)]]">
-              <ul class="childul">
-               <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
-                  <ftree-member member="[[member]]" master="[[returnfalse()]]"
-                  childindex="[[index]]" childnum="[[getchildnum()]]"
-                   users="[[users]]" me="[[item]]"></ftree-member>
-                </template>
-                </ul>
-              </template>
-              </li>
-         </template>
 
+               [[item.name]]
+             <template is="dom-if" if="[[item.spouse.name]]">
+               <br/>
+                 <img src="/src/ftree-app/icon/marry.png">
+                 <br/>
+                 [[item.spouse.name]]
+             </template>
+
+
+
+           </a></div>
+           <template is="dom-if" if="[[havechild(item.c)]]">
+           <ul class="childul">
+            <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
+               <ftree-member member="[[member]]" master="[[returnfalse()]]"
+               childindex="[[index]]" childnum="[[getchildnum()]]"
+                users="[[users]]" me="[[item]]"></ftree-member>
+             </template>
+             </ul>
+           </template>
+           </li>
+      </template>
     </template>
 
 
@@ -231,8 +275,9 @@
       }
 
 
+
       //event
-      addchild(e){
+/*      addchild(e){
          var p = e.currentTarget.getAttribute('parent');
          var ce =  new CustomEvent('addfire',{detail:p});
          window.dispatchEvent(ce);
@@ -254,11 +299,11 @@
        window.dispatchEvent(ce);
 
 
-      }
+     }*/
 
       showmember(e){
 
-        var p = e.currentTarget.getAttribute('parent');
+        var p = e.currentTarget;
 
        var ce =  new CustomEvent('showmember',{detail:p});
        window.dispatchEvent(ce);
@@ -324,6 +369,8 @@
         if(childarray.length>0) return true;
         return false;
       }
+
+
 
 
     }
