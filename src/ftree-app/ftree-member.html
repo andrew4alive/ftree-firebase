@@ -40,13 +40,18 @@
 
       }
       .ulfirst{
+        background-image: url('/src/ftree-app/icon/sun.png');
+        background-size: 100px;
+        background-repeat: no-repeat;
 
       }
+
       ul{
         display: inline-block;  /* can work with block*/
         padding-top: 20px;
         position: relative;
         white-space: nowrap;
+
       }
       li{
       /*  float: left;*/
@@ -62,16 +67,20 @@
       li::before,li::after{
         content:"";
         position: absolute; top:0px;right: 50%;
-        border-top: 1px solid #ccc;
+        border-top: 3px solid #ccc;
+          border-color: rgb(83, 49, 24);
         width: 60%;height: 20px;
         margin:0px;
         padding: 0px;
+        border-color: #3db83b;
       }
 
 
       li::after{
         right: auto;left:50%;
-        border-left: 1px solid #ccc;
+        border-left: 3px solid #3db83b;;
+        border-color: rgb(83, 49, 24);
+        border-color: #3db83b;
       }
 
 
@@ -96,39 +105,57 @@
       .childul::before{ /*ul that have child*/
         content:"";
         position: absolute;top:0px;right:50%;
-        border-left: 1px solid #ccc;
+        border-left: 3px solid #ccc;
         width: 0;height: 20px;
-
+        border-color: #3db83b;
       }
 
 
-      a{
+      li>div> a{
         text-align: center;
         display: inline-block;
         margin: 0px;
         position: relative;
         left:0px;
         padding:10px 10px;
-
+        background-color: #3db83b;
         border-style: solid;
-        border-color: #ccc;
-        border-width: thin;
+        border-color: rgb(83, 49, 24);
+        border-width: 3px;
         border-radius: 10px;
-
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        color: rgb(83, 49, 24);
+        z-index: 1;
       }
 
     /*css for family box*/
-    a >span{
+    li > div > a > span {
       padding:1px 3px;
 
       position: absolute;
       top:-20px;
     }
 
-    a> img{
+    li > div > a > img{
       position: relative;
       top:5px;
+      border-style: solid;
+      border-color: rgb(83, 49, 24);
+      border-width: 3px;
+      border-radius: 50%;
     }
+      /*pot elemt style*/
+
+      #pot >img{
+        position: relative;
+        top:-5px;
+        right: 0px;
+        width: 80px;
+        height: auto;
+        margin: 0px auto;
+        padding: 0px;
+        z-index:0;
+      }
 
     </style>
 
@@ -136,7 +163,7 @@
     <template is="dom-if" if="[[!ulhaveparent()]]" id="parent">
       <ul class="ulfirst">
          <template id="member" is="dom-repeat" items="[[memberlist]]">
-              <li  class$="[[liclass()]]">
+              <li  class$="[[liclass()]]" style="min-width:500px;">
                 <div><a parent$= "[[me]]" on-click="showmember">
 
                   [[item.name]]
@@ -147,26 +174,35 @@
                     [[item.spouse.name]]
                 </template>
 
-
-
               </a></div>
               <template is="dom-if" if="[[havechild(item.c)]]">
               <ul class="childul">
                <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
                   <ftree-member member="[[member]]" master="[[returnfalse()]]"
                   childindex="[[index]]" childnum="[[getchildnum()]]"
+                  countrf="{{countrf}}"
                    users="[[users]]" me="[[item]]"></ftree-member>
                 </template>
               </ul>
             </template>
+
+            <template is="dom-if" if="[[islastele()]]">
+               <div id="pot">
+                 <img src="/src/ftree-app/icon/pot.png" >
+               </div>
+            </template>
+
               </li>
+
+
+
          </template>
          </ul>
     </template>
 
     <template is="dom-if" if="[[ulhaveparent()]]" id="noparent">
       <template id="member" is="dom-repeat" items="[[memberlist]]">
-           <li  class$="[[liclass()]]">
+           <li  class$="[[liclass()]]" style="min-width:0px;">
              <div><a parent$= "[[me]]" on-click="showmember">
 
 
@@ -186,13 +222,23 @@
             <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
                <ftree-member member="[[member]]" master="[[returnfalse()]]"
                childindex="[[index]]" childnum="[[getchildnum()]]"
+               countrf="{{countrf}}"
                 users="[[users]]" me="[[item]]"></ftree-member>
              </template>
              </ul>
            </template>
+
+           <template is="dom-if" if="[[islastele()]]">
+              <div id="pot">
+                <img src="/src/ftree-app/icon/pot.png" >
+              </div>
+           </template>
+
            </li>
       </template>
     </template>
+
+
 
 
 
@@ -241,9 +287,16 @@
          childindex:{
            type:Number,
            value:null
+         },
+         countr:{
+           type:Number,
+           //notify:true,
+           value:0
+         },
+         countrf:{
+           type:Object,
+           value:null
          }
-
-
 
         };
       }
@@ -256,11 +309,7 @@
           }
 
           self.memberlist = [n[self.me]];
-        /*  self.memberchildlist = [];
-          var mckeys = Object.keys(n[self.me]);
-          if(mckeys.indexOf("c")>=0)
-            self.memberchildlist = Object.keys(n[self.me]['c']);
-        */
+
        }
        mlob(n,o){
       //  console.log(n,this.shadowRoot.childNodes);
@@ -271,35 +320,30 @@
 
       ready(){
         super.ready();
+        var self = this;
+        if(self.countrf==null){
+          self.countrf = {};
+          self.countrf.st = function(){
+            self.countr = self.countr + 1;
+          };
+          self.countrf.gt = function(){
+            return self.countr;
+          };
+        }
+
+      //  self.countrf.st();
+       //console.log(  self.countrf.gt()  );
+    /*    self.islastele(function(){
+          var ele = document.createElement('div');
+          ele.innerHTML="<span id='pot'><img src='/src/ftree-app/icon/pot.png'></span";
+
+          self.shadowRoot.appendChild(ele);
+        });*/
 
       }
 
 
 
-      //event
-/*      addchild(e){
-         var p = e.currentTarget.getAttribute('parent');
-         var ce =  new CustomEvent('addfire',{detail:p});
-         window.dispatchEvent(ce);
-      }
-
-      addparent(e){
-        var p = e.currentTarget.getAttribute('parent');
-        var ce =  new CustomEvent('addfire-parent',{detail:p});
-        window.dispatchEvent(ce);
-
-      }
-
-      deletechild(e){
-
-
-        var p = e.currentTarget.getAttribute('parent');
-
-       var ce =  new CustomEvent('deletefire',{detail:p});
-       window.dispatchEvent(ce);
-
-
-     }*/
 
       showmember(e){
 
@@ -354,7 +398,11 @@
       }
 
       ulhaveparent(){
-        if(this.childindex!=null) return true;
+
+        if(this.childindex!=null)
+        {
+        return true;
+        }
         return false;
 
       }
@@ -370,6 +418,21 @@
         return false;
       }
 
+
+
+      islastele(cb){
+        this.countrf.st();
+      //  console.log( this.countrf.gt()+'click' )
+        var membernum = Object.keys(this.member).length;
+        if( membernum == this.countrf.gt() )
+          {
+            if(typeof cb == 'function')
+            cb();
+            return true;
+          }
+
+          return false;
+      }
 
 
 

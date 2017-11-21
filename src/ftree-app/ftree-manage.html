@@ -126,8 +126,9 @@
 
         self.ftreep = 'ftree/users/'+self.users.uid+'/ftree';
         self.database.ref(self.ftreep).on('value',function(snap){
-
+          var ftreeholder = self.$.ftreeholder;
           if(snap.val() == null) {
+            ftreeholder.innerHTML = "";
             self.ftree=null;
             return false;
           }
@@ -136,7 +137,7 @@
           self.ftree =v;
           delete v.root ;
           //re-render ftree-member element
-          var ftreeholder = self.$.ftreeholder;
+
           ftreeholder.innerHTML="";
           var cele = document.createElement('ftree-member');
           cele.id = "ctree";
