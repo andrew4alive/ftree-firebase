@@ -63,6 +63,10 @@
           spouse:{
             type:Boolean,
 
+          },
+          eele:{
+            type:Object,
+            value:null
           }
         };
       }
@@ -86,7 +90,7 @@
         data:data,
         parent:self.meid
       }});
-      window.dispatchEvent(ce);
+      self.eele.dispatchEvent(ce);
         //}
         self.clearinput();
         this.closeform();
@@ -108,7 +112,7 @@
           data:data,
           parent:self.meid
         }});
-        window.dispatchEvent(ce);
+        self.eele.dispatchEvent(ce);
         self.clearinput();
         this.closeform();
       }

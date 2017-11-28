@@ -47,12 +47,16 @@
 
 
     <paper-dialog id="addftreemember"
-      
+
     on-opened-changed="dialogchange">
+
       <div id="main" class="show">
-        <paper-toggle-button active="{{edit}}" id="edit">
-          Edit
-        </paper-toggle-button>
+        <template is="dom-if" if="[[canedit]]">
+          <paper-toggle-button active="{{edit}}" id="edit">
+            Edit
+          </paper-toggle-button>
+        </template>
+
         <paper-input type="text" name="name" label="Name"  always-float-label disabled="{{!edit}}"
         value="[[display.name]]" error-message="more than 1 char" minlength="1"></paper-input>
 
@@ -72,7 +76,7 @@
         <paper-button on-click="delete" style="color:black;clear:left;" >Delete</paper-button>
 
       </template>
-      <template is="dom-if" if="[[users]]">
+      <template is="dom-if" if="[[canedit]]">
         <template is="dom-if" if="[[!edit]]">
           <paper-button customtarget="child" on-click="addchild"
           style="color:black;clear:right;">add member</paper-button>
@@ -83,7 +87,7 @@
     </div>
     <div id="add" class="hide">
 
-      <addftree-form closeform="[[closeformpass()]]" id="addform2"></addftree-form>
+      <addftree-form closeform="[[closeformpass()]]" id="addform2" eele="[[eele]]"></addftree-form>
 
     </div>
 
@@ -143,6 +147,14 @@
           },
           appearcb:{
             type:Function,
+            value:null
+          },
+          canedit:{
+            type:Boolean,
+            value:false
+          },
+          eele:{
+            type:Object,
             value:null
           }
 
@@ -247,14 +259,14 @@
               delete d[self.meid].spouse;
             }
             var ce = new CustomEvent('updateself',{detail:d});
-            window.dispatchEvent(ce);
+            this.eele.dispatchEvent(ce);
 
           }
 
       }
       delete(e){
         var ce = new CustomEvent('deletefire',{detail:this.meid});
-        window.dispatchEvent(ce);
+        this.eele.dispatchEvent(ce);
 
       }
 
@@ -278,6 +290,7 @@
         for(var i = 0; i <child.length; i++ ){
           //console.log(child[i].tagName,i);
           if(child[i].tagName == "PAPER-INPUT"){
+            if(child[i].value.length>0||typeof child[i].value == 'undefined')
             re[child[i].name] = child[i]["value"];
           }
         }

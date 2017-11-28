@@ -1,0 +1,40 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+
+<dom-module id="setpublic-form">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+      }
+    </style>
+    <template is="dom-if" if="[[appear]]">
+        <h2>hi set public</h2>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class setpublicForm extends Polymer.Element {
+      static get is() { return 'setpublic-form'; }
+      static get properties() {
+        return {
+          appear: {
+            type: Boolean,
+            value: false
+          }
+        };
+      }
+      ready(){
+        super.ready();
+        console.log(this.appear);
+      }
+    }
+
+    window.customElements.define(setpublicForm.is, setpublicForm);
+  </script>
+</dom-module>

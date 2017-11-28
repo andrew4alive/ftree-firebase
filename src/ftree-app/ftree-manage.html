@@ -7,16 +7,18 @@
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="./ftree-member.html">
-<link rel="import" href="./addftree-member.html">
+
 <link rel="import" href="./ftree-form.html">
+<link rel="import" href="./setpublic-form.html">
+
 <dom-module id="ftree-manage">
-  <template>
+  <template strip-whitespace>
     <style>
       :host {
         display:block;
-
 
       }
       paper-button{
@@ -32,6 +34,12 @@
         padding: 10px;
         padding-right: 75px;
         position: relative;
+        -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently*/
 
       }
       .header>img{
@@ -53,18 +61,31 @@
         overflow: visible;
         padding: 0 auto;
       }
+      /* animation class*/
+      .load-ani {
+        transition: opacity 0.5s ease;
+      }
     </style>
+
     <h2 class="header" style="margin:2%;">
-     Family Tree
-       <img src="/src/ftree-app/icon/tree.png">
-     </h2>
+      Family Tree
+      <img src="/src/ftree-app/icon/tree.png">
+    </h2>
     <br/>
+    <span id="isload" class="load-ani" style="display:none;opacity:1;">
+
+      <!--
+        <template is="dom-if" if="[[mypublicid]]">
+
+          <setpublic-form appear="true"></setpublic-form>
+
+    </template>
+  -->
 
 
 
 
-
-
+  <template is="dom-if" if="[[canedit]]">
 
 
     <template is="dom-if" if="[[!showfamily(ftree,me)]]">
@@ -72,12 +93,26 @@
         <b>create New Family Tree</b>
       </paper-button>
     </template>
-    <div id="ftreeholder">
 
-    </div>
-
-    <ftree-form id="ftreeform" users="[[users]]"></ftree-form>
   </template>
+
+      <div id="ftreeholder">
+
+      </div>
+
+
+
+    </span>
+    <ftree-form id="ftreeform" users="[[users]]" canedit="[[canedit]]" eele="[[geteventele()]]"></ftree-form>
+
+    <span id="isnotload" class="load-ani" style="display:inline;position:relative;opacity:1;">
+      <img src="/src/ftree-app/icon/loading.png" style="margin:0px;width:auto;height:50vh;" >
+    </span>
+
+
+
+
+</template>
 
   <script>
 
@@ -97,11 +132,26 @@
             type:Object,
             value:function(){ return {}; }
           },
-          users:Object,
-
+          users:{
+            type:Object,
+            value:null
+          },
+          pageid:{
+            type:String,
+            value:null,
+            observer:'_pageidob'
+          },
+          canedit:{
+            type:Boolean,
+            value:false
+          },
           ftree:{
             type:Object,
             value:function(){return {};}
+          },
+          mypublicid:{
+            type:Object,
+            value:null
           },
           ftreep:String,
           database:{
@@ -113,194 +163,92 @@
             type:String,
           //  readonly:true,
           //  value:null
-
         }
 
         };
       }
+      ///onserver
+      _pageidob(n,o){
+        var canedit =false;;
+        if(n==null||n==false){
+          if(this.users)
+            canedit = true;
+
+        }
+        else{
+          if(this.users !=null ){
+            if(this.users.uid == n)
+            canedit = true;
+         }
+        }
+
+        this.canedit =canedit;
+
+      }
   ///life cysle
+
       ready(){
         super.ready();
+        var self = this;
 
-        var  self =  this;
+          self.createdbyuser(self.pageid);
 
-        self.ftreep = 'ftree/users/'+self.users.uid+'/ftree';
-        self.database.ref(self.ftreep).on('value',function(snap){
-          var ftreeholder = self.$.ftreeholder;
-          if(snap.val() == null) {
-            ftreeholder.innerHTML = "";
-            self.ftree=null;
-            return false;
-          }
-          self.me = snap.val().root.rootid.toString();
-          var v =snap.val();
-          self.ftree =v;
-          delete v.root ;
-          //re-render ftree-member element
 
-          ftreeholder.innerHTML="";
-          var cele = document.createElement('ftree-member');
-          cele.id = "ctree";
-          cele.member = self.ftree;
-          cele.me = self.me;
-          cele.users=self.users;
-          ftreeholder.appendChild(cele);
-        });
 
       }
 
       detached(){
         self.database.ref(self.ftreep).off();
       }
-
-      connectedCallback(){//event from ftree member
-          super.connectedCallback();
-          // child event
-          var self =this;
-          var ftreeform = self.$.ftreeform;
-          if(ftreeform==null) return false;
-          window.addEventListener('updateself',function(e){
-          //  console.log(e.detail);
-            var d = e.detail;
-            var data ={};
-            var dkeys = Object.keys(d);
-            if(dkeys.length>0){
-              var path = self.ftreep+'/'+dkeys[0];
-              data[path] = d[dkeys[0]];
-              //console.log(data);
-
-              firebase.database().ref().update(data).then(function(){
-                ftreeform.appear =false;
-
-              });
-            }
-
-          });
-
-
-          ///new add child from addftree-member
-           window.addEventListener('addchild', function(e){
-             var d = e.detail.data;
-             var p = e.detail.parent;
-             var dkeys = Object.keys(d);
-             var nk =   firebase.database().ref(self.ftreep).push().key;
-             var data = {};
-             d['p'] = p;
-             d['c']= null;
-             d['date'] = firebase.database.ServerValue.TIMESTAMP;
-             data[self.ftreep+'/'+nk] = d ;
-             data[self.ftreep+'/'+p+'/c/'+nk] = nk;
-          //  console.log(data);
-             firebase.database().ref().update(data).then(function(){
-               ftreeform.appear =false;
-
-             });
-           });
-           ///new add child from addftree-member
-            window.addEventListener('addparent', function(e){
-              //console.log('add parent',e.detail); return false;
-              var d = e.detail.data;
-              var p = e.detail.parent;
-              var dkeys = Object.keys(d);
-              var parentkey = self.ftree[p]['p'];
-            //  console.log(parentkey,p);
-              var nk =   firebase.database().ref(self.ftreep).push().key;
-              var data = {};
-              d['p'] = parentkey;
-              d['c'] = {};
-              d.c[p] = p;
-              d['date'] = firebase.database.ServerValue.TIMESTAMP;
-              if(p != self.me){
-              data[self.ftreep+'/'+parentkey+'/c/'+nk] = nk ;
-              data[self.ftreep+'/'+parentkey+'/c/'+p] = null ;
-              }
-              else{
-                data['ftree/users/'+self.users.uid+'/ftree/root'] = {
-                  rootid:nk,
-                };
-                d['p'] = "--";
-              }
-              data[self.ftreep+'/'+nk] = d ;
-              data[self.ftreep+'/'+p+'/p'] = nk;
-            //  console.log(data); console.log(p,self.me); return false; to be continues
-              firebase.database().ref().update(data).then(function(){
-                ftreeform.appear =false;
-
-              });
-            });
-          //delete child event
-          window.addEventListener('deletefire', function(e){
-            var p = e.detail;
-            var d ={};
-          //  console.log(self.me,p);
-          //  console.log(self.me == p); return false;
-            if(self.me !=  p){
-            d[self.ftreep+'/'+p] = null;
-            var mepid = self.ftree[p].p;
-            d[self.ftreep+'/'+mepid+'/c/'+p] =null;
-            d = _corsivechild(self.ftree,self.ftree[p],d,[]);
-            }
-            else{ d[self.ftreep] = null; }
-            if(d == {}) return false;
-            firebase.database().ref().update(d).then(function(){
-               ftreeform.appear =false;
-
-            });
-
-            function  _corsivechild(member,child,re,pend){
-              var member = member;
-              var child = child;
-              var re = re;
-              var pend = pend;
-              if(typeof child != "undefined") {
-                if( child.hasOwnProperty('c')){
-                  for(var ky in child['c']){
-                    re[self.ftreep+'/'+ky] = null;
-                    pend.push(ky);
-
-                  }
-                }
-              }
-              if(pend.length>0){
-                var pendpop =pend.pop();
-                _corsivechild(member,member[pendpop],re,pend);
-              }
-              return re;
-
-            }
-
-          });
-
-          window.addEventListener('showmember',function(e){
-
-            var ftreeform = self.$.ftreeform;
-            if(ftreeform==null) return false;
-            ftreeform.parentele = e.detail;
-            ftreeform.formdata = self.ftree[e.detail.getAttribute('parent')];
-
-            ftreeform.meid = e.detail.getAttribute('parent');
-            ftreeform.appearcb ={};
-            ftreeform.appearcb.action = function(ar){
-              if(ar) {
-              self.$.ftreeholder.style.display="none";
-              }
-            else{
-              self.$.ftreeholder.style.display="block";
-            //  e.detail.scrollIntoView();
-              }
-            };
-            ftreeform.appear=true;
-          });
-          self.addEventListener('dom-change',function(e){
-            //console.log('dom change');
-            //console.log(e);
-          });
+      constructor() {
+        super();
+        this._updateself = this._updateselfE.bind(this);
+        this._addchild = this._addchildE.bind(this);
+        this._addparent = this._addparentE.bind(this);
+        this._deletefire = this._deletefireE.bind(this);
+        this._showmember = this._showmemberE.bind(this);
+        this._setpublic = this._setpublicE.bind(this);
 
       }
+      connectedCallback(){//event from ftree member
+          super.connectedCallback();
+          // update self
+          var self = this;
+           var eele = self.geteventele();
+          eele.addEventListener('updateself',self._updateself);
+          ///new add child from addftree-member
+           eele.addEventListener('addchild', self._addchild);
+           ///new add child from addftree-member
+          eele.addEventListener('addparent', self._addparent);
+          //delete child event
+          eele.addEventListener('deletefire', self._deletefire);
+
+          eele.addEventListener('showmember',self._showmember);
+        ///set public
+        eele.addEventListener('setpublic',self._setpublic);
+        //end of connect life cycle
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        var self = this;
+        var eele = self.geteventele();
+        eele.removeEventListener('updateself',self._updateself);
+        ///new add child from addftree-member
+         eele.removeEventListener('addchild', self._addchild);
+         ///new add child from addftree-member
+          eele.removeEventListener('addparent', self._addparent);
+        //delete child event
+        eele.removeEventListener('deletefire', self._deletefire);
+
+        eele.removeEventListener('showmember',self._showmember);
+      ///set public
+      eele.removeEventListener('setpublic',self._setpublic);
+    }
 
       //event
       createfamilyftree(e){
-       self = this;
+       var self = this;
        var key =  self.database.ref('ftree/users/'+this.users.uid).push().key;
        var data = {};
        data['ftree/users/'+this.users.uid+'/ftree/'+key] = {
@@ -314,19 +262,39 @@
          rootid:key,
        };
 
+      // data['ftree/public/'+key] = {userid: self.users.uid};
+
        self.database.ref().update(data);
      }
-
+      /*
      showaddftree(e){
       /* console.log(e.currentTarget);
        var self =this;
        var addftreemember = self.$.addftreemember;
         console.log(addftreemember.style.height);
        addftreemember.style.height="100%";
-       */
+       *//*
        var addftreemember = this.$.addftreemember;
        addftreemember.open();
        console.log(this.users);
+     }*/
+
+     setpublic(e){
+       var self = this;
+       var change = true;
+       var s = ['Public','Private'];
+       var ihtml = e.currentTarget.innerHTML.trim()
+
+       //console.log(ihtml);
+       if(e.detail.value==true)
+        e.currentTarget.innerHTML = s[0];
+        if(e.detail.value==false){
+          e.currentTarget.innerHTML = s[1];
+        }
+        if(ihtml==''||self.mypublicid == null) return false;
+        if(change==false) return false;
+        var ce =new CustomEvent('setpublic',{detail:e.detail.value});
+        window.dispatchEvent(ce);
      }
 
      //helper
@@ -349,6 +317,258 @@
         };
 
      }
+
+     gettrue(){
+       return true;
+     }
+     ownpage(){
+       return true;
+
+      var mpidky = Object.keys(self.mypublicid);
+      console.log(self.users.uid,self.mypublicid[mpiky[0]].userid);
+      if(self.users.uid = self.mypublicid[mpiky[0]].userid)
+        re = true;
+
+      return re;
+
+     }
+
+     getpublicpath(){
+    /*   var self = this;
+       if(typeof self.ftreep == 'undefined') return false;
+       var ftreearr = self.ftreep.toString().split('/');
+       var re= '';
+       for(var i =0;i<2;i++)
+          re = re + ftreearr[i]+'/';
+*/
+       return 'ftree/public/';
+     }
+
+     geteventele(){
+       return this;
+     }
+
+
+     //container
+     createdbyuser(pageid){
+       var  self =  this;
+       var ftreeholder = self.$.ftreeholder;
+       var id ;
+
+        if(pageid==null||pageid==false)
+          id=self.users.uid;
+        else
+            id = pageid;
+
+       self.ftreep = 'ftree/users/'+id+'/ftree';
+    //   console.log(self.ftreep);
+       self.database.ref(self.ftreep).on('value',function(snap){
+        //   console.log(snap.val());
+         self.$.isnotload.style.opacity = "0";
+
+         if(snap.val() == null) {
+           ftreeholder.innerHTML = "";
+           self.ftree=null;
+           if(pageid==null||pageid==false)
+           window.location.hash="";
+           return false;
+         }
+         if(pageid==null||pageid==false)
+         window.location.hash="pageid="+id;
+         self.me = snap.val().root.rootid.toString();
+         var v =snap.val();
+         self.ftree =v;
+         delete v.root ;
+         //re-render ftree-member element
+         ftreeholder.innerHTML="";
+         var cele = document.createElement('ftree-member');
+         cele.id = "ctree";
+         cele.member = self.ftree;
+         cele.me = self.me;
+         cele.users=self.users;
+        cele.eele = self.geteventele();
+         ftreeholder.appendChild(cele);
+
+
+       });
+       //animation
+       self.$.isnotload.addEventListener("transitionend",function(e){
+         var ct =e.currentTarget;
+         ct.style.display = "none";
+         self.$.isload.style.display = "inline";
+
+       });
+
+     }
+     ///firebase addEventListener
+     _updateselfE(e){
+       var self =this;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       //  console.log(e.detail);
+         var d = e.detail;
+         var data ={};
+         var dkeys = Object.keys(d);
+         if(dkeys.length>0){
+           var path = self.ftreep+'/'+dkeys[0];
+           data[path] = d[dkeys[0]];
+           //console.log(data);
+
+           firebase.database().ref().update(data).then(function(){
+             ftreeform.appear =false;
+
+           });
+         }
+
+     }
+     _addchildE(e){
+       var self =this;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       var d = e.detail.data;
+       var p = e.detail.parent;
+       var dkeys = Object.keys(d);
+       var nk =   firebase.database().ref(self.ftreep).push().key;
+       var data = {};
+       d['p'] = p;
+       d['c']= null;
+       d['date'] = firebase.database.ServerValue.TIMESTAMP;
+       data[self.ftreep+'/'+nk] = d ;
+       data[self.ftreep+'/'+p+'/c/'+nk] = nk;
+    //  console.log(data);
+       firebase.database().ref().update(data).then(function(){
+         ftreeform.appear =false;
+
+       });
+     }
+
+     _addparentE(e){
+       var self =this;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       var d = e.detail.data;
+       var p = e.detail.parent;
+       var dkeys = Object.keys(d);
+       var parentkey = self.ftree[p]['p'];
+     //  console.log(parentkey,p);
+       var nk =   firebase.database().ref(self.ftreep).push().key;
+       var data = {};
+       d['p'] = parentkey;
+       d['c'] = {};
+       d.c[p] = p;
+       d['date'] = firebase.database.ServerValue.TIMESTAMP;
+       if(p != self.me){
+       data[self.ftreep+'/'+parentkey+'/c/'+nk] = nk ;
+       data[self.ftreep+'/'+parentkey+'/c/'+p] = null ;
+       }
+       else{
+         //'ftree/users/'+self.users.uid+'/ftree/root'
+       //  console.log(self.ftreep+'/root',self.users);
+         data[self.ftreep+'/root'] = {
+           rootid:nk,
+         };
+         d['p'] = "--";
+       }
+       data[self.ftreep+'/'+nk] = d ;
+       data[self.ftreep+'/'+p+'/p'] = nk;
+     //  console.log(data); console.log(p,self.me); return false; to be continues
+       firebase.database().ref().update(data).then(function(){
+         ftreeform.appear =false;
+
+       });
+     }
+     _deletefireE(e){
+       var self =this;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       var p = e.detail;
+       var d ={};
+     //  console.log(self.me,p);
+     //  console.log(self.me == p); return false;
+       if(self.me !=  p){
+       d[self.ftreep+'/'+p] = null;
+       var mepid = self.ftree[p].p;
+       d[self.ftreep+'/'+mepid+'/c/'+p] =null;
+       d = _corsivechild(self.ftree,self.ftree[p],d,[]);
+       }
+       else{ d[self.ftreep] = null; }
+       if(d == {}) return false;
+       firebase.database().ref().update(d).then(function(){
+          ftreeform.appear =false;
+
+       });
+
+       function  _corsivechild(member,child,re,pend){
+         var member = member;
+         var child = child;
+         var re = re;
+         var pend = pend;
+         if(typeof child != "undefined") {
+           if( child.hasOwnProperty('c')){
+             for(var ky in child['c']){
+               re[self.ftreep+'/'+ky] = null;
+               pend.push(ky);
+
+             }
+           }
+         }
+         if(pend.length>0){
+           var pendpop =pend.pop();
+           _corsivechild(member,member[pendpop],re,pend);
+         }
+         return re;
+
+       }
+
+     }
+     _showmemberE(e){
+    //   console.log('showmwber');
+       var self =this;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       ftreeform.parentele = e.detail;
+       ftreeform.formdata = self.ftree[e.detail.getAttribute('parent')];
+
+       ftreeform.meid = e.detail.getAttribute('parent');
+       ftreeform.appearcb ={};
+       ftreeform.appearcb.action = function(ar){
+         if(ar) {
+         self.$.isload.style.display="none";
+         }
+       else{
+         self.$.isload.style.display="block";
+
+         }
+       };
+       ftreeform.appear=true;
+     }
+     _setpublicE(e){
+       var self =this;
+       var ftreeform = self.$.ftreeform;
+       if(ftreeform==null) return false;
+       var pp = self.getpublicpath();
+       if(!pp) return false;
+       //console.log( pp,e.detail);
+       var nk =   firebase.database().ref(pp).push().key;
+       var d= {};
+       var pky = [];
+       if(self.mypublicid != null)
+       pky = Object.keys(self.mypublicid);
+       for(var i =0;i<pky.length;i++)
+         d[pp+'/'+pky[i]] = null
+
+       if(e.detail){
+         d[pp+'/'+nk] = {
+           userid : self.users.uid
+         };
+       }
+
+       firebase.database().ref().update(d);
+     }
+
+
 
 
     }

@@ -34,11 +34,20 @@
   -->
     <template is="dom-if" if="{{users}}">
       <paper-button raised="true" class="logout" on-click="logout">Logout</paper-button>
-      <ftree-manage users="{{users}}"></ftree-manage>
+      <ftree-manage users="{{users}}" pageid="[[pageid]]" ></ftree-manage>
      </template>
-     <template is="dom-if" if="{{!users}}">
-      <welcome-page users="{{users}}" on-loginaction="loginmethod" ></welcome-page>
+     <template is="dom-if" if="[[!users]]">
+
+
+     <template is="dom-if" if="{{!pageid}}">
+        <welcome-page users="{{users}}" on-loginaction="loginmethod" ></welcome-page>
       </template>
+
+      <template is="dom-if" if="[[pageid]]">
+        <ftree-manage users="{{users}}" pageid="[[pageid]]"></ftree-manage>
+      </template>
+      </template>
+
 
       <!--dummy load icon for performance-->
       <span class="dummy" style="display:none;">
@@ -53,18 +62,8 @@
  <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase-app.js"></script>
  <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase-auth.js"></script>
  <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase-database.js"></script>
+ <script type="text/javascript" src="fireconfig.js"></script>
   <script>
-   //// firebase object
-    // Initialize Firebase
-    var config = {
-      apiKey: "AIzaSyDJ-2tz0yCVRkJ84jRb3WR4JNLYiTT6F94",
-      authDomain: "ftree-b702e.firebaseapp.com",
-      databaseURL: "https://ftree-b702e.firebaseio.com",
-      projectId: "ftree-b702e",
-      storageBucket: "ftree-b702e.appspot.com",
-      messagingSenderId: "303794074572"
-    };
-    firebase.initializeApp(config);
 
     /**
      * @customElement
@@ -82,6 +81,16 @@
             },
             observer:'userschange'
           },
+          pageid:{
+            type:Object,
+            value:null
+
+          },
+          iswelcome:{
+            type:Boolean,
+            value:false
+
+          }
 
 
           }
@@ -109,12 +118,36 @@
            }
              });
 
-         setTimeout(function () {
-
-         },0);
+        self.pageid =  this._hashquery('pageid');
+      //  console.log(self.pageid);
 
        }
 
+       _hashquery(query){
+          var hash = window.location.hash;
+          var hasharr = [];
+          if(hash[0] == '#')
+           hash = hash.substring(1,hash.length);
+           else if(hash[0] == '#/')
+            hash = hash.substring(2,hash.length);
+            if(hash=='') return false;
+            hasharr = hash.split('&');
+            for(var i =0 ;i<hasharr.length;i++){
+              var h1 = hasharr[i].split('=');
+              if(h1.length>=2){
+                if(h1[0] == query)
+                return h1[1];
+              }
+
+
+            }
+
+            return null;
+        //  console.log(hash,hasharr);
+        }
+
+
+        //event
       loginmethod(e){
 
         console.log('login action from free-app');
@@ -156,6 +189,17 @@
         });
 
       }
+
+      pagemanager(){
+        var self = this;
+        var pageid = this._hashquery('pageid');
+        self.pageid = pageid;
+        console.log(pageid);
+        if(pageid ==false || pageid == null || self.users == null ) //welcome page
+          return false;
+        return true;
+      }
+
 
 
 

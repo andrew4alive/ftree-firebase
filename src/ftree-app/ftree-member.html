@@ -6,7 +6,7 @@
 <link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 
-<link rel="import" href="./ftree-member-child.html">
+
 
 <dom-module id="ftree-member">
   <template>
@@ -16,6 +16,12 @@
       /*  width: 100%;
         margin: 0 auto;
        padding: 0px;*/
+       -webkit-touch-callout: none; /* iOS Safari */
+   -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+      -moz-user-select: none; /* Firefox */
+       -ms-user-select: none; /* Internet Explorer/Edge */
+           user-select: none; /* Non-prefixed version, currently*/
       }
       paper-button{
         border: medium solid #FDF3E7;
@@ -51,6 +57,7 @@
         padding-top: 20px;
         position: relative;
         white-space: nowrap;
+
 
       }
       li{
@@ -126,6 +133,7 @@
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
         color: rgb(83, 49, 24);
         z-index: 1;
+
       }
 
     /*css for family box*/
@@ -180,7 +188,7 @@
                <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
                   <ftree-member member="[[member]]" master="[[returnfalse()]]"
                   childindex="[[index]]" childnum="[[getchildnum()]]"
-                  countrf="{{countrf}}"
+                  countrf="{{countrf}}" eele="[[eele]]"
                    users="[[users]]" me="[[item]]"></ftree-member>
                 </template>
               </ul>
@@ -222,7 +230,7 @@
             <template id="childrepeat" is="dom-repeat" items="[[objecttoarraychild(item.c)]]">
                <ftree-member member="[[member]]" master="[[returnfalse()]]"
                childindex="[[index]]" childnum="[[getchildnum()]]"
-               countrf="{{countrf}}"
+               countrf="{{countrf}}"  eele="[[eele]]"
                 users="[[users]]" me="[[item]]"></ftree-member>
              </template>
              </ul>
@@ -296,6 +304,10 @@
          countrf:{
            type:Object,
            value:null
+         },
+         eele:{
+           type:Object,
+           value:null
          }
 
         };
@@ -348,9 +360,11 @@
       showmember(e){
 
         var p = e.currentTarget;
-
+    //    console.log(this.eele);
        var ce =  new CustomEvent('showmember',{detail:p});
-       window.dispatchEvent(ce);
+       if(this.eele==null) return false;
+        this.eele.dispatchEvent(ce);
+      // window.dispatchEvent(ce);
 
       }
 
