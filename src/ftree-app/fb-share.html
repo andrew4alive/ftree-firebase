@@ -1,0 +1,66 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="fb-share">
+  <template>
+    <style>
+      :host {
+        display: inline;
+      }
+    </style>
+  <!--  <h2>Hello [[prop1]]!</h2>
+  -->
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class fbShare extends Polymer.Element {
+      static get is() { return 'fb-share'; }
+      static get properties() {
+        return {
+          pageid: {
+            type: String,
+            value: null
+          }
+        };
+      }
+      ready(){
+        super.ready();
+        var self = this;
+        var meta = window.document.head.getElementsByTagName('meta');
+
+        if(self.pageid != null){
+        self.setfbmeta(meta,'og:title',"My Family Tree");
+        self.setfbmeta(meta,"og:description","Check Out This Family Ftree");
+        }
+        else{
+          self.setfbmeta(meta,'og:title',"Create Family Tree");
+          self.setfbmeta(meta,"og:description","How Cool Izzit To Share Your Family Ftree");
+
+        }
+      }
+
+
+      setfbmeta(meta, type , content){
+
+        for(var i = 0 ; i <meta.length ; i++ ){
+
+          if((meta[i].getAttribute('property')+'').trim() == type.trim()){
+            meta[i].setAttribute('content',content);
+            
+            return false;
+          }
+        }
+        var nele = document.createElement('meta');
+        nele.setAttribute('property',type);
+        nele.setAttribute('content',content);
+        window.document.head.appendChild(nele);
+      }
+
+    }
+
+    window.customElements.define(fbShare.is, fbShare);
+  </script>
+</dom-module>

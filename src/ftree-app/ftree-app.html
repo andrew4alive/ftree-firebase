@@ -5,7 +5,8 @@
 <!--my app import-->
 <link rel="import" href="./welcome-page.html">
 <link rel="import" href="./ftree-manage.html">
-
+<link rel="import" href="./fb-share.html">
+<link rel="import" href="./page-404.html">
 
 <dom-module id="ftree-app">
   <template>
@@ -29,24 +30,31 @@
 
       }
     </style>
-   <!--
-    <h2>Hello [[prop1]][[login.text]]!</h2>
-  -->
-    <template is="dom-if" if="{{users}}">
-      <paper-button raised="true" class="logout" on-click="logout">Logout</paper-button>
-      <ftree-manage users="{{users}}" pageid="[[pageid]]" ></ftree-manage>
-     </template>
-     <template is="dom-if" if="[[!users]]">
-
-
-     <template is="dom-if" if="{{!pageid}}">
-        <welcome-page users="{{users}}" on-loginaction="loginmethod" ></welcome-page>
+    <template is="dom-if" if="[[!pagenf]]">
+      <template is="dom-if" if="{{users}}" restamp="true">
+        <paper-button raised="true" class="logout" on-click="logout">Logout</paper-button>
+        <ftree-manage users="{{users}}" pageid="[[pageid]]" ></ftree-manage>
+        <fb-share pageid = "{{pageid}}"></fb-share>
       </template>
 
-      <template is="dom-if" if="[[pageid]]">
-        <ftree-manage users="{{users}}" pageid="[[pageid]]"></ftree-manage>
+      <template is="dom-if" if="[[!users]]" restamp="true">
+        <template is="dom-if" if="{{!pageid}}" restamp="true">
+          <fb-share ></fb-share>
+          <welcome-page users="{{users}}" on-loginaction="loginmethod" ></welcome-page>
+        </template>
+
+        <template is="dom-if" if="[[pageid]]" restamp="true">
+
+          <fb-share pageid = "{{pageid}}"></fb-share>
+          <ftree-manage users="{{users}}" pageid="[[pageid]]"></ftree-manage>
+        </template>
       </template>
-      </template>
+    </template>
+
+    <template is="dom-if" if="[[pagenf]]">
+
+      </span><page-404></page-404>
+    </template>
 
 
       <!--dummy load icon for performance-->
@@ -56,6 +64,7 @@
       <img src="/src/ftree-app/icon/marry.png">
       <img src="/src/ftree-app/icon/tree.png" >
     </span>
+    <!--fb share element-->
 
   </template>
   <!-- firebase librrary-->
@@ -82,7 +91,7 @@
             observer:'userschange'
           },
           pageid:{
-            type:Object,
+            type:String,
             value:null
 
           },
@@ -90,15 +99,39 @@
             type:Boolean,
             value:false
 
+          },
+          pagenf:{
+            type:Boolean,
+            value:false
           }
 
 
           }
         }
+        static get observers(){
+          return[
+            '_pagemanager(users,pageid)'
+          ];
+        }
+
         userschange(n,o){
-        //  console.log(n);
+      //    console.log(n);
 
        }
+       _pagemanager(users,pageid){
+         var self = this;
+        // console.log(users,pageid);
+
+        if(typeof self.pageid == 'string'){
+
+          firebase.database().ref('ftree/users/'+self.pageid).once('value').then(function(snap){
+            var v = snap.val();
+
+            if(v == null)
+            self.pagenf = true;
+          });
+        }  else self.pagenf = false;
+      }
 
 
        ready(){
@@ -119,8 +152,22 @@
              });
 
         self.pageid =  this._hashquery('pageid');
+        window.onhashchange = function(e){
+          self.pageid = self._hashquery('pageid');
+
+        }
       //  console.log(self.pageid);
 
+       }
+
+       connectedCallback(){
+         super.connectedCallback();
+         var self = this;
+
+       }
+       disconnectedCallback() {
+         super.disconnectedCallback();
+         var self = this;
        }
 
        _hashquery(query){
@@ -164,7 +211,7 @@
           // ...
         }).catch(function(error) {
 
-          console.log('sign in error');
+          console.log('sign in error:'+error);
           // Handle Errors here.
           var errorCode = error.code;
           var errorMessage = error.message;
@@ -184,22 +231,29 @@
 
         firebase.auth().signOut().then(function() {
           // Sign-out successful.
+          location.reload();
         }).catch(function(error) {
           // An error happened.
         });
 
       }
 
-      pagemanager(){
+      /*pagemanager(){
         var self = this;
         var pageid = this._hashquery('pageid');
         self.pageid = pageid;
-        console.log(pageid);
+      //  console.log(pageid);
         if(pageid ==false || pageid == null || self.users == null ) //welcome page
           return false;
         return true;
-      }
+      }*/
 
+      //page
+
+      //helper
+      _eq(a,b){
+        return a == b ;
+      }
 
 
 

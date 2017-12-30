@@ -27,6 +27,7 @@
        color: white;
 
       }
+
       .header{
         background-color: #339ACC;
         border-radius: 5px;
@@ -67,8 +68,8 @@
       }
     </style>
 
-    <h2 class="header" style="margin:2%;">
-      Family Tree
+    <h2 class="header" id="header" style="margin:2%;">
+      <span id="headerlink"  style="margin:0px;padding:0px;" >Family Tree</span>
       <img src="/src/ftree-app/icon/tree.png">
     </h2>
     <br/>
@@ -190,7 +191,9 @@
       ready(){
         super.ready();
         var self = this;
-
+          self.$.headerlink.onclick=function(e){
+              window.location = "/";
+          };
           self.createdbyuser(self.pageid);
 
 

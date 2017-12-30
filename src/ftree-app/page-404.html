@@ -1,0 +1,47 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="page-404">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <span id="p4" style="width:100%;height:100%;text-align:center;top-padding:20px;">
+    <h1 style="font-size:600%;margin-top:20px;">
+         ,,,,,,,</br>
+        (*o*)
+    </h1>
+    <h1 style="font-size:200%;">404</h1>
+    <h1>page not found</h1>
+  </span>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class page404 extends Polymer.Element {
+      static get is() { return 'page-404'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'ftree-app'
+          }
+        };
+      }
+
+      ready(){
+        super.ready();
+        var self = this;
+        self.$.p4.onclick=function(){
+          window.location = '/';  
+        };
+      }
+    }
+
+    window.customElements.define(page404.is, page404);
+  </script>
+</dom-module>

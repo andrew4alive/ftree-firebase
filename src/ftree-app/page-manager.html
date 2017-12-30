@@ -1,0 +1,32 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="page-manager">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class pageManager extends Polymer.Element {
+      static get is() { return 'page-manager'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'ftree-app'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(pageManager.is, pageManager);
+  </script>
+</dom-module>

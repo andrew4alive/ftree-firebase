@@ -320,15 +320,31 @@
       "type": "document",
       "weight": 1
     },
+    "bower_components/paper-toggle-button/paper-toggle-button.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "bower_components/paper-behaviors/paper-checked-element-behavior.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "bower_components/iron-checked-element-behavior/iron-checked-element-behavior.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "bower_components/iron-validatable-behavior/iron-validatable-behavior.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "bower_components/iron-form-element-behavior/iron-form-element-behavior.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "bower_components/paper-behaviors/paper-inky-focus-behavior.html": {
+      "type": "document",
+      "weight": 1
+    },
     "src/ftree-app/ftree-member.html": {
-      "type": "document",
-      "weight": 1
-    },
-    "src/ftree-app/ftree-member-child.html": {
-      "type": "document",
-      "weight": 1
-    },
-    "src/ftree-app/addftree-member.html": {
       "type": "document",
       "weight": 1
     },
@@ -340,19 +356,11 @@
       "type": "document",
       "weight": 1
     },
-    "bower_components/iron-form-element-behavior/iron-form-element-behavior.html": {
-      "type": "document",
-      "weight": 1
-    },
     "bower_components/iron-input/iron-input.html": {
       "type": "document",
       "weight": 1
     },
     "bower_components/iron-a11y-announcer/iron-a11y-announcer.html": {
-      "type": "document",
-      "weight": 1
-    },
-    "bower_components/iron-validatable-behavior/iron-validatable-behavior.html": {
       "type": "document",
       "weight": 1
     },
@@ -376,24 +384,24 @@
       "type": "document",
       "weight": 1
     },
-    "bower_components/paper-toggle-button/paper-toggle-button.html": {
-      "type": "document",
-      "weight": 1
-    },
-    "bower_components/paper-behaviors/paper-checked-element-behavior.html": {
-      "type": "document",
-      "weight": 1
-    },
-    "bower_components/iron-checked-element-behavior/iron-checked-element-behavior.html": {
-      "type": "document",
-      "weight": 1
-    },
-    "bower_components/paper-behaviors/paper-inky-focus-behavior.html": {
-      "type": "document",
-      "weight": 1
-    },
     "src/ftree-app/addftree-form.html": {
       "type": "document",
+      "weight": 1
+    },
+    "src/ftree-app/setpublic-form.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "src/ftree-app/fb-share.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "src/ftree-app/page-404.html": {
+      "type": "document",
+      "weight": 1
+    },
+    "src/ftree-app/fireconfig.js": {
+      "type": "script",
       "weight": 1
     }
   }
